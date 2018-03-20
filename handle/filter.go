@@ -7,8 +7,8 @@ import (
 	"github.com/beewit/beekit/utils"
 	"github.com/beewit/beekit/utils/convert"
 	"github.com/beewit/beekit/utils/enum"
-	"github.com/beewit/hive/global"
 	"github.com/labstack/echo"
+	"github.com/beewit/sort-url/global"
 )
 
 

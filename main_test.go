@@ -61,7 +61,7 @@ func ApiPost(url string, m map[string]string) (utils.ResultParam, error) {
 }
 
 func TestCreateSortUrlApi(t *testing.T) {
-	rp, err := ApiPost("http://127.0.0.1:8085/api/create?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.YE5cN3CIAq1Bk24hEU0euHz0tGcwW_NUhOaBy7diwF0", nil)
+	rp, err := ApiPost("http://sort.9ee3.com/api/create?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.HV8iAqo9biUNtnhxoTMT4KCC4PL60NMpHSaq7PqtZCc&longUrl=http://www.baidu.com", nil)
 	if err != nil {
 		t.Error(err.Error())
 	}

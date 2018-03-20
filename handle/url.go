@@ -2,13 +2,13 @@ package handle
 
 import (
 	"github.com/labstack/echo"
+	"github.com/beewit/beekit/mysql"
 	"github.com/beewit/beekit/utils"
 	"github.com/beewit/sort-url/global"
+	"github.com/beewit/beekit/utils/convert"
 	"fmt"
 	"crypto/md5"
-	"github.com/beewit/beekit/mysql"
 	"github.com/pkg/errors"
-	"github.com/beewit/beekit/utils/convert"
 	"net/http"
 )
 
@@ -46,7 +46,7 @@ func CreateSortUrl(c echo.Context) error {
 	if sortUrl == "" {
 		return utils.ErrorNull(c, "转换创建失败")
 	}
-	return utils.Success(c, "转换短链接成功", sortUrl)
+	return utils.Success(c, "转换短链接成功", getSortUrl(sortUrl))
 }
 
 //短链接跳转
