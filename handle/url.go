@@ -14,6 +14,10 @@ import (
 
 //创建短链接
 func CreateSortUrl(c echo.Context) error {
+	acc, err := GetAccount(c)
+	if err != nil {
+		return err
+	}
 	var longUrl = c.FormValue("longUrl")
 	if longUrl == "" {
 		return utils.ErrorNull(c, "转换失败，原地址为空")
@@ -25,7 +29,6 @@ func CreateSortUrl(c echo.Context) error {
 	if !utils.IsUrl(longUrl) {
 		return utils.ErrorNull(c, "转换失败，原地址不是有效的Url，格式示例：http://www.baidu.com")
 	}
-	var accId int64 = 1
 	//判断数据库是否存在
 	m, err := getByLongUrl(longUrl)
 	if err != nil {
@@ -35,7 +38,7 @@ func CreateSortUrl(c echo.Context) error {
 		return utils.Success(c, "转换成功", getSortUrl(convert.ToString(m["sort_url"])))
 	}
 	//添加短链接
-	sortUrl, err := addSortUrl(longUrl, c.RealIP(), accId)
+	sortUrl, err := addSortUrl(longUrl, c.RealIP(), acc.ID)
 	if err != nil {
 		global.Log.Error("CreateSortUrl error：%v", err.Error())
 		return utils.ErrorNull(c, "转换创建失败")

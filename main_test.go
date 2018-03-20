@@ -12,6 +12,8 @@ import (
 	"github.com/beewit/sort-url/handle"
 	"net/http"
 	"net/url"
+	"github.com/beewit/beekit/utils/uhttp"
+	"encoding/json"
 )
 
 func TestSortUrl(t *testing.T) {
@@ -29,11 +31,11 @@ func TestHashCode(t *testing.T) {
 
 }
 
-
 func TestCreateSortUrl(t *testing.T) {
 	e := echo.New()
 	f := url.Values{}
 	f.Set("longUrl", "http://sso.9ee3.com")
+	f.Set("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.XMvP2ISedrRFJH9N0-G-YIACkXsO49ZdcbNKtS8GdO8872")
 	req := httptest.NewRequest(echo.POST, "/", strings.NewReader(f.Encode()))
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationForm)
 	rec := httptest.NewRecorder()
@@ -43,4 +45,29 @@ func TestCreateSortUrl(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		t.Log(rec.Body.String())
 	}
+}
+
+func ApiPost(url string, m map[string]string) (utils.ResultParam, error) {
+	b, _ := json.Marshal(m)
+	body, err := uhttp.Cmd(uhttp.Request{
+		Method: "POST",
+		URL:    url,
+		Body:   b,
+	})
+	if err != nil {
+		return utils.ResultParam{}, err
+	}
+	return utils.ToResultParam(body), nil
+}
+
+func TestCreateSortUrlApi(t *testing.T) {
+	rp, err := ApiPost("http://127.0.0.1:8085/api/create?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.YE5cN3CIAq1Bk24hEU0euHz0tGcwW_NUhOaBy7diwF0", nil)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	str, err2 := json.Marshal(rp)
+	if err2 != nil {
+		t.Error(err2.Error())
+	}
+	println(string(str))
 }
