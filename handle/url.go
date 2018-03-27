@@ -10,6 +10,7 @@ import (
 	"crypto/md5"
 	"github.com/pkg/errors"
 	"net/http"
+	"github.com/beewit/beekit/utils/enum"
 )
 
 //创建短链接
@@ -35,10 +36,17 @@ func CreateSortUrl(c echo.Context) error {
 		return utils.ErrorNull(c, "转换失败")
 	}
 	if m != nil {
+		if convert.ToString(m["status"]) == enum.NORMAL {
+			return utils.ErrorNull(c, "待转换的链接已被锁定，无法转换")
+		}
 		return utils.Success(c, "转换成功", getSortUrl(convert.ToString(m["sort_url"])))
 	}
+	var title = c.FormValue("title")
+	if len(title) > 255 {
+		return utils.ErrorNull(c, "短链接标题过长")
+	}
 	//添加短链接
-	sortUrl, err := addSortUrl(longUrl, c.RealIP(), acc.ID)
+	sortUrl, err := addSortUrl(title, longUrl, c.RealIP(), acc.ID)
 	if err != nil {
 		global.Log.Error("CreateSortUrl error：%v", err.Error())
 		return utils.ErrorNull(c, "转换创建失败")
@@ -58,6 +66,9 @@ func SortUrlJump(c echo.Context) error {
 	}
 	if m == nil {
 		return utils.ResultString(c, "短链接无效")
+	}
+	if convert.ToString(m["status"]) == enum.NORMAL {
+		return utils.ResultString(c, "短链接已失效")
 	}
 	head := c.Request().Header
 	go addSortUrlLog(m, head, c.RealIP())
@@ -81,17 +92,19 @@ func getSortUrl(sortUrl string) string {
 	return global.SortDoMain + "/" + sortUrl
 }
 
-func addSortUrl(longUrl, ip string, accId int64) (string, error) {
+func addSortUrl(title, longUrl, ip string, accId int64) (string, error) {
 	var flog = false
 	var sortUrl string
 	var e error
 	global.DB.Tx(func(tx *mysql.SqlConnTransaction) {
 		id, err := tx.InsertMap("short_link", map[string]interface{}{
+			"title":      title,
 			"hash_code":  getHashCode(longUrl),
 			"origin_url": longUrl,
 			"ip":         ip,
 			"ct_time":    utils.CurrentTime(),
 			"account_id": accId,
+			"status":     enum.NORMAL,
 		})
 		if err != nil {
 			global.Log.Error(err.Error())
@@ -151,4 +164,32 @@ func getByLongUrl(longUrl string) (map[string]interface{}, error) {
 
 func getHashCode(s string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(s)))
+}
+
+/**
+	短链接评估
+ */
+func GetSortUrlPage(c echo.Context) error {
+	acc, err := GetAccount(c)
+	if err != nil {
+		return err
+	}
+	pageIndex := utils.GetPageIndex(c.FormValue("pageIndex"))
+	pageSize := utils.GetPageSize(c.FormValue("pageSize"))
+	page, err := global.DB.QueryPage(&utils.PageTable{
+		Fields:    "v.*",
+		Table:     "v_account_sort_url v",
+		Where:     "v.status=? AND v.account_id=?",
+		PageIndex: pageIndex,
+		PageSize:  pageSize,
+		Order:     "ct_time DESC",
+	}, enum.NORMAL, acc.ID)
+	if err != nil {
+		global.Log.Error("GetSortUrlPage sql error：%s", err.Error())
+		return utils.Error(c, "获取数据失败", nil)
+	}
+	if page == nil {
+		return utils.NullData(c)
+	}
+	return utils.Success(c, "获取数据成功", page)
 }

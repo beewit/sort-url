@@ -15,6 +15,7 @@ func main() {
 	e.Use(middleware.Recover())
 	e.File("/", "app/page/index.html")
 	e.POST("/api/create", handle.CreateSortUrl, handle.Filter)
+	e.POST("/api/get/page", handle.GetSortUrlPage, handle.Filter)
 	e.GET("*", handle.SortUrlJump)
 	utils.Open(global.Host)
 	port := ":" + convert.ToString(global.Port)

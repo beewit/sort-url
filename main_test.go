@@ -14,6 +14,8 @@ import (
 	"net/url"
 	"github.com/beewit/beekit/utils/uhttp"
 	"encoding/json"
+	"github.com/beewit/beekit/utils/user_agent"
+	"github.com/beewit/beekit/utils/convert"
 )
 
 func TestSortUrl(t *testing.T) {
@@ -162,3 +164,14 @@ func TestCreateSortUrlApi(t *testing.T) {
 	}
 	println(string(str))
 }
+
+
+
+
+func TestUserAgent(t *testing.T) {
+	ua := user_agent.New("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.97 Safari/537.11")
+
+	println(convert.MustJsonPrettyString(ua))
+}
+
+
